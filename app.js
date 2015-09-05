@@ -1,3 +1,14 @@
 #!/usr/bin/env node
 
-console.log('hoge');
+var config = require('config');
+var logger = require('log4js').getLogger();
+var express = require('express');
+var compression = require('compression')
+var app = express();
+
+app.use(compression());
+app.use(express.static('build', {maxAge: '1d'}));
+
+app.listen(config.port, config.host, function() {
+  logger.info('Listen %s:%s', config.host, config.port);
+});
