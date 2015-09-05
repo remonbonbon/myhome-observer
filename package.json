@@ -14,6 +14,7 @@
     "express": "^4.13.3",
     "lodash": "^3.10.1",
     "log4js": "^0.6.26",
+    "rickshaw": "^1.5.1",
     "vue": "^0.12.12"
   },
   "devDependencies": {

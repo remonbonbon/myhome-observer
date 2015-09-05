@@ -1,3 +1,5 @@
+'use strict';
+
 var gulp = require('gulp');
 var rename = require("gulp-rename");
 var gulpIf = require("gulp-if");
@@ -9,6 +11,7 @@ var sass = require('gulp-sass');
 var webpack = require('gulp-webpack');
 var uglify = require('gulp-uglify');
 
+// CLI options
 var options = minimist(process.argv.slice(2), {
   boolean: 'debug',
   default: {
@@ -16,11 +19,12 @@ var options = minimist(process.argv.slice(2), {
   }
 });
 
+// Build configurations
 var BUILD = {
   js: {
     src: ['./src/app.js'],
     watch: ['./src/*.js'],
-    dest: 'build.js',
+    dest: 'bundle.js',
   },
   html: {
     src: ['./src/app.jade'],
@@ -30,20 +34,23 @@ var BUILD = {
   dest: './build/'
 };
 
+// ESlint
 gulp.task('eslint', function () {
   gulp.src(BUILD.js.watch)
     .pipe(eslint())
     .pipe(eslint.format());
 });
 
+// Build javascript
 gulp.task('js', function() {
   gulp.src(BUILD.js.src)
     .pipe(webpack())
-    .pipe(uglify())
+    .pipe(gulpIf(!options.debug, uglify()))
     .pipe(rename(BUILD.js.dest))
     .pipe(gulp.dest(BUILD.dest))
 });
 
+// Build html
 gulp.task('html', function() {
   gulp.src(BUILD.html.src)
     .pipe(jade({
@@ -58,16 +65,19 @@ gulp.task('html', function() {
     .pipe(gulp.dest(BUILD.dest))
 });
 
+// Build all
 gulp.task('build', [
   'js',
   'html',
 ]);
 
+// Watch all
 gulp.task('watch', function() {
   gulp.watch(BUILD.js.watch, ['eslint', 'js']);
   gulp.watch(BUILD.html.watch, ['html']);
 });
 
+// Default task
 gulp.task('default', [
   'eslint',
   'build',
