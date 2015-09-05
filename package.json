@@ -1,0 +1,16 @@
+{
+  "name": "myhome-observer",
+  "version": "1.0.0",
+  "description": "Observe my home.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remonbonbon/myhome-observer.git"
+  },
+  "author": "remonbonbon",
+  "license": "MIT",
+  "dependencies": {
+    "config": "^1.16.0",
+    "express": "^4.13.3",
+    "lodash": "^3.10.1"
+  }
+}
