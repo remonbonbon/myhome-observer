@@ -1,8 +1,8 @@
 'use strict';
 
 var gulp = require('gulp');
-var rename = require("gulp-rename");
-var gulpIf = require("gulp-if");
+var rename = require('gulp-rename');
+var gulpIf = require('gulp-if');
 var minimist = require('minimist');
 
 var eslint = require('gulp-eslint');
@@ -21,32 +21,40 @@ var options = minimist(process.argv.slice(2), {
 
 // Build configurations
 var BUILD = {
-  js: {
-    src: ['./src/app.js'],
-    watch: ['./src/*.js'],
+  jsServer: {
+    watch: ['./server.js', './src/server/**/*.js'],
+  },
+  jsClient: {
+    src: ['./src/client/app.js'],
+    watch: ['./src/client/**/*.js'],
     dest: 'bundle.js',
   },
   html: {
-    src: ['./src/app.jade'],
-    watch: ['./src/*.jade'],
+    src: ['./src/jade/app.jade'],
+    watch: ['./src/jade/**/*.jade'],
     dest: 'index.html',
   },
   dest: './build/'
 };
 
 // ESlint
-gulp.task('eslint', function () {
-  gulp.src(BUILD.js.watch)
+gulp.task('eslint-server', function () {
+  gulp.src(BUILD.jsServer.watch)
+    .pipe(eslint())
+    .pipe(eslint.format());
+});
+gulp.task('eslint-client', function () {
+  gulp.src(BUILD.jsClient.watch)
     .pipe(eslint())
     .pipe(eslint.format());
 });
 
 // Build javascript
 gulp.task('js', function() {
-  gulp.src(BUILD.js.src)
+  gulp.src(BUILD.jsClient.src)
     .pipe(webpack())
     .pipe(gulpIf(!options.debug, uglify()))
-    .pipe(rename(BUILD.js.dest))
+    .pipe(rename(BUILD.jsClient.dest))
     .pipe(gulp.dest(BUILD.dest))
 });
 
@@ -56,7 +64,7 @@ gulp.task('html', function() {
     .pipe(jade({
       locals: {
         path: {
-          js: BUILD.js.dest,
+          js: BUILD.jsClient.dest,
         }
       },
       pretty: options.debug
@@ -73,13 +81,15 @@ gulp.task('build', [
 
 // Watch all
 gulp.task('watch', function() {
-  gulp.watch(BUILD.js.watch, ['eslint', 'js']);
+  gulp.watch(BUILD.jsServer.watch, ['eslint-server']);
+  gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'js']);
   gulp.watch(BUILD.html.watch, ['html']);
 });
 
 // Default task
 gulp.task('default', [
-  'eslint',
+  'eslint-server',
+  'eslint-client',
   'build',
   'watch',
 ]);
