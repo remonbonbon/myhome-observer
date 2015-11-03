@@ -50,7 +50,7 @@ gulp.task('eslint-client', function () {
 });
 
 // Build javascript
-gulp.task('js', function() {
+gulp.task('webpack', function() {
   gulp.src(BUILD.jsClient.src)
     .pipe(webpack())
     .pipe(gulpIf(!options.debug, uglify()))
@@ -59,7 +59,7 @@ gulp.task('js', function() {
 });
 
 // Build html
-gulp.task('html', function() {
+gulp.task('jade', function() {
   gulp.src(BUILD.html.src)
     .pipe(jade({
       locals: {
@@ -75,15 +75,15 @@ gulp.task('html', function() {
 
 // Build all
 gulp.task('build', [
-  'js',
-  'html',
+  'webpack',
+  'jade',
 ]);
 
 // Watch all
 gulp.task('watch', function() {
   gulp.watch(BUILD.jsServer.watch, ['eslint-server']);
-  gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'js']);
-  gulp.watch(BUILD.html.watch, ['html']);
+  gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'webpack']);
+  gulp.watch(BUILD.html.watch, ['jade']);
 });
 
 // Default task

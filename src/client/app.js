@@ -1,4 +1,4 @@
-(function() {
+(function(global) {
   'use strict';
 
   var m = require('mithril');
@@ -119,8 +119,8 @@
   };
 
   //initialize the application
-  m.mount(document.getElementById('app'), {
+  m.mount(global.document.getElementById('app'), {
     controller: app.controller,
     view: app.view
   });
-})();
+})((this || 0).self || global);
