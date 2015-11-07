@@ -38,8 +38,8 @@ usb_humi = ""
 usbrh = commands.getoutput("sudo usbrh")
 match = re.search(r"([0-9\-.]+) ([0-9\-.]+)", usbrh)
 if match:
-  usb_temp = match.group(1).strip()
-  usb_humi = match.group(2).strip()
+	usb_temp = match.group(1).strip()
+	usb_humi = match.group(2).strip()
 
 # Disk free size (1K byte)
 total_disk = ""
@@ -47,8 +47,8 @@ used_disk = ""
 df = commands.getoutput("df --block-size=1K /record")
 match = re.search(r"/dev/[a-z0-9]+\s+(\d+)\s+(\d+)\s+(\d+)", df)
 if match:
-  total_disk = match.group(1)
-  used_disk = match.group(2)
+	total_disk = match.group(1)
+	used_disk = match.group(2)
 
 # Load average
 load_average_1min = ""
@@ -57,20 +57,20 @@ load_average_15min = ""
 uptime = commands.getoutput("uptime")
 match = re.search(r"load average\:\s+([0-9.]+),\s+([0-9.]+),\s+([0-9.]+)", uptime)
 if match:
-  load_average_1min = match.group(1)
-  load_average_5min = match.group(2)
-  load_average_15min = match.group(3)
+	load_average_1min = match.group(1)
+	load_average_5min = match.group(2)
+	load_average_15min = match.group(3)
 
 print ",".join([
-    timestamp,
-    total_disk,
-    used_disk,
-    load_average_1min,
-    load_average_5min,
-    load_average_15min,
-    cpu_temp,
-    usb_temp,
-    usb_humi,
-    hdd_state,
-    recording_state,
-  ])
+		timestamp,
+		total_disk,
+		used_disk,
+		load_average_1min,
+		load_average_5min,
+		load_average_15min,
+		cpu_temp,
+		usb_temp,
+		usb_humi,
+		hdd_state,
+		recording_state,
+	])

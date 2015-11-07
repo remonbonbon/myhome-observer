@@ -13,83 +13,83 @@ var uglify = require('gulp-uglify');
 
 // CLI options
 var options = minimist(process.argv.slice(2), {
-  boolean: 'debug',
-  default: {
-    debug: false
-  }
+	boolean: 'debug',
+	default: {
+		debug: false
+	}
 });
 
 // Build configurations
 var BUILD = {
-  jsServer: {
-    watch: ['./server.js', './src/server/**/*.js'],
-  },
-  jsClient: {
-    src: ['./src/client/app.js'],
-    watch: ['./src/client/**/*.js'],
-    dest: 'bundle.js',
-  },
-  html: {
-    src: ['./src/jade/app.jade'],
-    watch: ['./src/jade/**/*.jade'],
-    dest: 'index.html',
-  },
-  dest: './build/'
+	jsServer: {
+		watch: ['./server.js', './src/server/**/*.js'],
+	},
+	jsClient: {
+		src: ['./src/client/app.js'],
+		watch: ['./src/client/**/*.js'],
+		dest: 'bundle.js',
+	},
+	html: {
+		src: ['./src/jade/app.jade'],
+		watch: ['./src/jade/**/*.jade'],
+		dest: 'index.html',
+	},
+	dest: './build/'
 };
 
 // ESlint
 gulp.task('eslint-server', function () {
-  gulp.src(BUILD.jsServer.watch)
-    .pipe(eslint())
-    .pipe(eslint.format());
+	gulp.src(BUILD.jsServer.watch)
+		.pipe(eslint())
+		.pipe(eslint.format());
 });
 gulp.task('eslint-client', function () {
-  gulp.src(BUILD.jsClient.watch)
-    .pipe(eslint())
-    .pipe(eslint.format());
+	gulp.src(BUILD.jsClient.watch)
+		.pipe(eslint())
+		.pipe(eslint.format());
 });
 
 // Build javascript
 gulp.task('webpack', function() {
-  gulp.src(BUILD.jsClient.src)
-    .pipe(webpack())
-    .pipe(gulpIf(!options.debug, uglify()))
-    .pipe(rename(BUILD.jsClient.dest))
-    .pipe(gulp.dest(BUILD.dest))
+	gulp.src(BUILD.jsClient.src)
+		.pipe(webpack())
+		.pipe(gulpIf(!options.debug, uglify()))
+		.pipe(rename(BUILD.jsClient.dest))
+		.pipe(gulp.dest(BUILD.dest))
 });
 
 // Build html
 gulp.task('jade', function() {
-  gulp.src(BUILD.html.src)
-    .pipe(jade({
-      locals: {
-        path: {
-          js: BUILD.jsClient.dest,
-        }
-      },
-      pretty: options.debug
-    }))
-    .pipe(rename(BUILD.html.dest))
-    .pipe(gulp.dest(BUILD.dest))
+	gulp.src(BUILD.html.src)
+		.pipe(jade({
+			locals: {
+				path: {
+					js: BUILD.jsClient.dest,
+				}
+			},
+			pretty: options.debug
+		}))
+		.pipe(rename(BUILD.html.dest))
+		.pipe(gulp.dest(BUILD.dest))
 });
 
 // Build all
 gulp.task('build', [
-  'webpack',
-  'jade',
+	'webpack',
+	'jade',
 ]);
 
 // Watch all
 gulp.task('watch', function() {
-  gulp.watch(BUILD.jsServer.watch, ['eslint-server']);
-  gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'webpack']);
-  gulp.watch(BUILD.html.watch, ['jade']);
+	gulp.watch(BUILD.jsServer.watch, ['eslint-server']);
+	gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'webpack']);
+	gulp.watch(BUILD.html.watch, ['jade']);
 });
 
 // Default task
 gulp.task('default', [
-  'eslint-server',
-  'eslint-client',
-  'build',
-  'watch',
+	'eslint-server',
+	'eslint-client',
+	'build',
+	'watch',
 ]);
