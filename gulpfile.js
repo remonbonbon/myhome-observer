@@ -1,3 +1,4 @@
+/*eslint strict: [2, "global"]*/
 'use strict';
 
 var gulp = require('gulp');
@@ -7,14 +8,24 @@ var minimist = require('minimist');
 
 var eslint = require('gulp-eslint');
 var jade = require('gulp-jade');
-var sass = require('gulp-sass');
 var webpack = require('gulp-webpack');
 var uglify = require('gulp-uglify');
 var mainBowerFiles = require('main-bower-files');
 var filter = require('gulp-filter');
 var concat = require('gulp-concat');
-var less = require('gulp-less');
 var minifyCss = require('gulp-minify-css');
+
+mainBowerFiles = mainBowerFiles({
+	overrides: {
+		bootstrap: {
+			main: [
+				'dist/css/bootstrap.css',
+				'dist/js/bootstrap.js',
+				'dist/fonts/*.*',
+			]
+		}
+	}
+});
 
 // CLI options
 var options = minimist(process.argv.slice(2), {
@@ -43,12 +54,17 @@ var BUILD = {
 };
 
 // ESlint
-gulp.task('eslint-server', function () {
+gulp.task('eslint-gulp', function() {
+	return gulp.src('gulpfile.js')
+		.pipe(eslint())
+		.pipe(eslint.format());
+});
+gulp.task('eslint-server', function() {
 	return gulp.src(BUILD.jsServer.watch)
 		.pipe(eslint())
 		.pipe(eslint.format());
 });
-gulp.task('eslint-client', function () {
+gulp.task('eslint-client', function() {
 	return gulp.src(BUILD.jsClient.watch)
 		.pipe(eslint())
 		.pipe(eslint.format());
@@ -56,22 +72,22 @@ gulp.task('eslint-client', function () {
 
 // Bower
 gulp.task('bower-js', function() {
-	return gulp.src(mainBowerFiles())
+	return gulp.src(mainBowerFiles)
 		.pipe(filter('*.js'))
 		.pipe(concat('vendor.js'))
 		.pipe(uglify({preserveComments: 'some'}))
 		.pipe(gulp.dest(BUILD.dest));
 });
-gulp.task('bower-less', function() {
-	return gulp.src(mainBowerFiles())
-		.pipe(filter('*.less'))
-		.pipe(less())
-		.pipe(minifyCss())
+gulp.task('bower-css', function() {
+	return gulp.src(mainBowerFiles)
+		.pipe(filter('*.css'))
 		.pipe(concat('vendor.css'))
+		.pipe(minifyCss())
 		.pipe(gulp.dest(BUILD.dest));
 });
 gulp.task('bower-fonts', function() {
-	return gulp.src(['bower_components/bootstrap/dist/fonts/*.*'])
+	return gulp.src(mainBowerFiles)
+		.pipe(filter(['*.eot', '*.svg', '*.ttf', '*.woff', '*.woff2']))
 		.pipe(gulp.dest(BUILD.dest + 'fonts'));
 });
 
@@ -104,7 +120,7 @@ gulp.task('jade', function() {
 // Build all
 gulp.task('build', [
 	'bower-js',
-	'bower-less',
+	'bower-css',
 	'bower-fonts',
 	'webpack',
 	'jade',
@@ -112,6 +128,7 @@ gulp.task('build', [
 
 // Watch all
 gulp.task('watch', function() {
+	gulp.watch('gulpfile.js', ['eslint-gulp']);
 	gulp.watch(BUILD.jsServer.watch, ['eslint-server']);
 	gulp.watch(BUILD.jsClient.watch, ['eslint-client', 'webpack']);
 	gulp.watch(BUILD.html.watch, ['jade']);
@@ -119,6 +136,7 @@ gulp.task('watch', function() {
 
 // Default task
 gulp.task('default', [
+	'eslint-gulp',
 	'eslint-server',
 	'eslint-client',
 	'build',
