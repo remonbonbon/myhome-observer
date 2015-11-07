@@ -24,61 +24,51 @@
 
 	// Setup route.
 	function _routing(app) {
-		app.get('/api/recorder', function(req, res) {
+		app.get('/api/recorder/programs', function(req, res) {
 			async.waterfall([
 				function(callback) {
-					callback(null, {});
+					callback(null, []);
 				},
-				function _getReserves(state, callback) {
-					fs.readFile(path.resolve('../chinachu/data/reserves.json'), 'utf8', function(err, data) {
-						if (err) return callback(err);
-						state.reserves = JSON.parse(data).map(function(d) {
-							return {
-								channel: _getChannelName(d.channel.id),
-								isConflict: d.isConflict,
-								startTime: d.start,
-								endTime: d.end,
-								title: d.title,
-								episode: d.episode,
-							};
-						});
-						callback(null, state);
-					});
-				},
-				function _getRecorded(state, callback) {
+				function _getRecorded(result, callback) {
 					fs.readFile(path.resolve('../chinachu/data/recorded.json'), 'utf8', function(err, data) {
 						if (err) return callback(err);
-						state.recorded = JSON.parse(data).map(function(d) {
-							return {
+						JSON.parse(data).forEach(function(d) {
+							result.push({
+								isRecorded: true,
 								channel: _getChannelName(d.channel.id),
 								isConflict: d.isConflict,
 								startTime: d.start,
 								endTime: d.end,
 								title: d.title,
 								episode: d.episode,
-							};
+							});
 						});
-						callback(null, state);
+						callback(null, result);
 					});
 				},
-				function _getRules(state, callback) {
-					fs.readFile(path.resolve('../chinachu/rules.json'), 'utf8', function(err, data) {
+				function _getReserves(result, callback) {
+					fs.readFile(path.resolve('../chinachu/data/reserves.json'), 'utf8', function(err, data) {
 						if (err) return callback(err);
-						state.rules = JSON.parse(data).map(function(d) {
-							return {
-								channel: d.channels ? _getChannelName(d.channels[0]) : null,
-								title: d.reserve_titles[0],
-							};
+						JSON.parse(data).forEach(function(d) {
+							result.push({
+								isRecorded: false,
+								channel: _getChannelName(d.channel.id),
+								isConflict: d.isConflict,
+								startTime: d.start,
+								endTime: d.end,
+								title: d.title,
+								episode: d.episode,
+							});
 						});
-						callback(null, state);
+						callback(null, result);
 					});
 				},
-			], function(err, state) {
+			], function(err, result) {
 				if (err) {
 					logger.warn(err);
 					return res.sendStatus(500);
 				}
-				res.json(state);
+				res.json(result);
 			});
 		});
 	}

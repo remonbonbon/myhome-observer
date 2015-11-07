@@ -6,46 +6,28 @@
 	var app = {};
 
 	// Define Model class
-	app.RecoderRule = function(data) {
-		this.channel = m.prop(data.channel);
-		this.title = m.prop(data.title);
-	};
 	app.RecoderProgram = function(data) {
+		this.isRecorded = m.prop(data.isRecorded);
 		this.channel = m.prop(data.channel);
 		this.title = m.prop(data.title);
 		this.episode = m.prop(data.episode);
 		this.isConflict = m.prop(data.isConflict);
 		this.startTime = m.prop(new Date(data.startTime));
 		this.endTime = m.prop(new Date(data.endTime));
-		this.timeLength = m.prop(data.endTime - data.startTime);
+		this.timeLength = m.prop(Math.floor((data.endTime - data.startTime) / 1000 / 60));
 	};
 
 	// Define View-Model
 	app.vm = {
 		init: function() {
-			app.vm.rules = m.prop([]);
-			app.vm.reserves = m.prop([]);
-			app.vm.recorded = m.prop([]);
-			m.request({
+			app.vm.programs = m.request({
 				method: 'GET',
-				url: '/api/recorder',
-			}).then(function(responce) {
-				app.vm.rules(
-					responce.rules.map(function(data) {
-						return new app.RecoderRule(data);
-					})
-				);
-				app.vm.reserves(
-					responce.reserves.map(function(data) {
-						return new app.RecoderProgram(data);
-					})
-				);
-				app.vm.recorded(
-					responce.recorded.map(function(data) {
-						return new app.RecoderProgram(data);
-					})
-				);
+				url: '/api/recorder/programs',
+				type: app.RecoderProgram,
+				initialValue: [],
+				background: true,
 			});
+			m.sync([app.vm.programs]).then(m.redraw);
 		}
 	};
 
@@ -55,71 +37,35 @@
 	};
 
 	app.view = function() {
-		return m('div', [
-			m('h3', 'Reserves'),
-			m('table', {border: 1}, [
-				m('tr', [
+		return m('.container-fluid', [
+			m('h2', 'Recorder Programs'),
+			m('table.table.table-hover.table-condensed', [
+				m('thead', m('tr', [
 					m('th', 'Channel'),
 					m('th', 'Title'),
-					m('th', 'Episode'),
-					m('th', 'Conflict'),
-					m('th', 'Start time'),
-					m('th', 'End time'),
-					m('th', 'Recording length'),
-				]),
-				app.vm.reserves().map(function(d) {
-					return m('tr', [
+					m('th', 'Datetime'),
+					m('th', 'Length'),
+				])),
+				m('tbody', app.vm.programs().map(function(d) {
+					var trClass = '';
+					if (d.isConflict()) {
+						trClass = 'danger';
+					} else if (d.isRecorded()) {
+						trClass = 'success';
+					}
+					return m('tr', {class: trClass}, [
 						m('td', d.channel()),
-						m('td', d.title()),
-						m('td', d.episode()),
-						m('td', d.isConflict()),
-						m('td', d.startTime().toLocaleString()),
-						m('td', d.endTime().toLocaleString()),
-						m('td', d.timeLength() / 1000 / 60 + ' min'),
+						m('td', d.title() + (d.episode() ? ' #' + d.episode() : '')),
+						m('td', d.startTime().toLocaleString().replace(/\:00$/, '')),
+						m('td', d.timeLength() + ' min'),
 					]);
-				}),
-			]),
-			m('h3', 'Recoded'),
-			m('table', {border: 1}, [
-				m('tr', [
-					m('th', 'Channel'),
-					m('th', 'Title'),
-					m('th', 'Episode'),
-					m('th', 'Conflict'),
-					m('th', 'Start time'),
-					m('th', 'End time'),
-					m('th', 'Recording length'),
-				]),
-				app.vm.recorded().map(function(d) {
-					return m('tr', [
-						m('td', d.channel()),
-						m('td', d.title()),
-						m('td', d.episode()),
-						m('td', d.isConflict()),
-						m('td', d.startTime().toLocaleString()),
-						m('td', d.endTime().toLocaleString()),
-						m('td', d.timeLength() / 1000 / 60 + ' min'),
-					]);
-				}),
-			]),
-			m('h3', 'Rules'),
-			m('table', {border: 1}, [
-				m('tr', [
-					m('th', 'Channel'),
-					m('th', 'Title'),
-				]),
-				app.vm.rules().map(function(d) {
-					return m('tr', [
-						m('td', d.channel()),
-						m('td', d.title()),
-					]);
-				}),
+				})),
 			]),
 		]);
 	};
 
 	//initialize the application
-	m.mount(global.document.getElementById('app'), {
+	m.mount(global.document.body, {
 		controller: app.controller,
 		view: app.view
 	});

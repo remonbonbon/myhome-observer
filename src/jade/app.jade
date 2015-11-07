@@ -1,4 +1,9 @@
-extends ./layout.jade
-
-block body
-	#app
+doctype html
+html
+	head
+		meta(charset="utf-8")
+		title My home observer
+		link(rel="stylesheet" href="#{path.vendorCss}")
+	body
+		script(src="#{path.vendorJs}")
+		script(src="#{path.js}")
