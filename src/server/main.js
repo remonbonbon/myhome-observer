@@ -8,6 +8,7 @@
 	var fs = require('fs');
 	var path = require('path');
 	var async = require('async');
+	var childProcess = require('child_process');
 
 	// Setup express.
 	function _setupExpress() {
@@ -61,9 +62,52 @@
 		});
 	}
 
+	// Returns stats of server.
+	function _serverStats(req, res) {
+		async.waterfall([
+			function(callback) {
+				childProcess.exec('tail -n 1 cron.csv', function(error, stdout, stderr) {
+					if (error) return callback(error);
+					var columns = stdout.replace(/[\r\n]/g, '').split(',');
+					callback(null, {
+						timestamp: new Date(columns[0]),
+						disk: {
+							total: parseInt(columns[1], 10),
+							used: parseInt(columns[2], 10),
+							unit: '1KB',
+						},
+						loadAverage: {
+							avg1: parseFloat(columns[3]),
+							avg5: parseFloat(columns[4]),
+							avg15: parseFloat(columns[5]),
+						},
+						cpu: {
+							temperature: parseFloat(columns[6]),
+						},
+						room: {
+							temperature: parseFloat(columns[7]),
+							humidity: parseFloat(columns[8]),
+						},
+						recorder: {
+							isActive: columns[9] !== 'standby',
+							isRecording: columns[10] !== 'standby',
+						}
+					});
+				});
+			},
+		], function(err, result) {
+			if (err) {
+				logger.warn(err);
+				return res.sendStatus(500);
+			}
+			res.json(result);
+		});
+	}
+
 	// Setup route.
 	function _routing(app) {
 		app.get('/api/recorder/programs', _chinachuPrograms);
+		app.get('/api/server/stats', _serverStats);
 	}
 
 	// Start express server.
