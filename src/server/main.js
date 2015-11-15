@@ -22,55 +22,48 @@
 		return config.recorder.channelNames[channelId];
 	}
 
+	function _extractProgram(filePath, isRecorded, result, callback) {
+		fs.readFile(filePath, 'utf8', function(err, data) {
+			if (err) return callback(err);
+			JSON.parse(data).forEach(function(d) {
+				result.push({
+					isRecorded: isRecorded,
+					channel: _getChannelName(d.channel.id),
+					isConflict: d.isConflict,
+					startTime: d.start,
+					endTime: d.end,
+					title: d.title,
+					episode: d.episode,
+				});
+			});
+			callback(null, result);
+		});
+	}
+
+	// Returns chinachu recorded and reserves.
+	function _chinachuPrograms(req, res) {
+		async.waterfall([
+			function(callback) {
+				callback(null, []);
+			},
+			function _getRecorded(result, callback) {
+				_extractProgram(path.resolve('../chinachu/data/recorded.json'), true, result, callback);
+			},
+			function _getReserves(result, callback) {
+				_extractProgram(path.resolve('../chinachu/data/reserves.json'), false, result, callback);
+			},
+		], function(err, result) {
+			if (err) {
+				logger.warn(err);
+				return res.sendStatus(500);
+			}
+			res.json(result);
+		});
+	}
+
 	// Setup route.
 	function _routing(app) {
-		app.get('/api/recorder/programs', function(req, res) {
-			async.waterfall([
-				function(callback) {
-					callback(null, []);
-				},
-				function _getRecorded(result, callback) {
-					fs.readFile(path.resolve('../chinachu/data/recorded.json'), 'utf8', function(err, data) {
-						if (err) return callback(err);
-						JSON.parse(data).forEach(function(d) {
-							result.push({
-								isRecorded: true,
-								channel: _getChannelName(d.channel.id),
-								isConflict: d.isConflict,
-								startTime: d.start,
-								endTime: d.end,
-								title: d.title,
-								episode: d.episode,
-							});
-						});
-						callback(null, result);
-					});
-				},
-				function _getReserves(result, callback) {
-					fs.readFile(path.resolve('../chinachu/data/reserves.json'), 'utf8', function(err, data) {
-						if (err) return callback(err);
-						JSON.parse(data).forEach(function(d) {
-							result.push({
-								isRecorded: false,
-								channel: _getChannelName(d.channel.id),
-								isConflict: d.isConflict,
-								startTime: d.start,
-								endTime: d.end,
-								title: d.title,
-								episode: d.episode,
-							});
-						});
-						callback(null, result);
-					});
-				},
-			], function(err, result) {
-				if (err) {
-					logger.warn(err);
-					return res.sendStatus(500);
-				}
-				res.json(result);
-			});
-		});
+		app.get('/api/recorder/programs', _chinachuPrograms);
 	}
 
 	// Start express server.
