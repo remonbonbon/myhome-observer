@@ -40,20 +40,20 @@
 				method: 'GET',
 				url: '/api/recorder/programs',
 				type: app.RecoderProgram,
-				initialValue: [],
-				background: true,
+				// initialValue: [],
+				// background: true,
 			});
 			app.vm.stats = m.request({
 				method: 'GET',
 				url: '/api/server/stats',
 				type: app.ServerStats,
-				initialValue: new app.ServerStats({}),
-				background: true,
+				// initialValue: new app.ServerStats({}),
+				// background: true,
 			});
-			m.sync([
-				app.vm.programs,
-				app.vm.stats,
-			]).then(m.redraw);
+			// m.sync([
+				// app.vm.programs,
+				// app.vm.stats,
+			// ]).then(m.redraw);
 		}
 	};
 

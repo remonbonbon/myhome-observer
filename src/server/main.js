@@ -58,7 +58,7 @@
 				logger.warn(err);
 				return res.sendStatus(500);
 			}
-			res.json(result);
+			res.set('Cache-Control', 'public,max-age=0').json(result);
 		});
 	}
 
@@ -100,7 +100,7 @@
 				logger.warn(err);
 				return res.sendStatus(500);
 			}
-			res.json(result);
+			res.set('Cache-Control', 'public,max-age=0').json(result);
 		});
 	}
 
