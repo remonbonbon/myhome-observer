@@ -27,6 +27,7 @@
 		fs.readFile(filePath, 'utf8', function(err, data) {
 			if (err) return callback(err);
 			JSON.parse(data).forEach(function(d) {
+				if (d.isSkip) return;	// ignore skipped program
 				result.push({
 					isRecorded: isRecorded,
 					channel: _getChannelName(d.channel.id),
