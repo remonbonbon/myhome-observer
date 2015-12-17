@@ -5,27 +5,13 @@ var gulp = require('gulp');
 var rename = require('gulp-rename');
 var gulpIf = require('gulp-if');
 var minimist = require('minimist');
+var plumber = require('gulp-plumber');
 
 var eslint = require('gulp-eslint');
 var jade = require('gulp-jade');
 var webpack = require('gulp-webpack');
 var uglify = require('gulp-uglify');
-var mainBowerFiles = require('main-bower-files');
-var filter = require('gulp-filter');
-var concat = require('gulp-concat');
-var minifyCss = require('gulp-minify-css');
-
-mainBowerFiles = mainBowerFiles({
-	overrides: {
-		bootstrap: {
-			main: [
-				'dist/css/bootstrap.css',
-				'dist/js/bootstrap.js',
-				'dist/fonts/*.*',
-			]
-		}
-	}
-});
+var sass = require('gulp-sass');
 
 // CLI options
 var options = minimist(process.argv.slice(2), {
@@ -44,6 +30,9 @@ var BUILD = {
 		src: ['./src/client/app.js'],
 		watch: ['./src/client/**/*.js'],
 		dest: 'bundle.js',
+	},
+	bootstrap: {
+		scss: ['./src/externals/bootstrap/bootstrap.scss'],
 	},
 	html: {
 		src: ['./src/jade/app.jade'],
@@ -73,25 +62,12 @@ gulp.task('eslint-client', function() {
 		.pipe(eslint.format());
 });
 
-// Bower
-gulp.task('bower-js', function() {
-	return gulp.src(mainBowerFiles)
-		.pipe(filter('*.js'))
-		.pipe(concat('vendor.js'))
-		.pipe(uglify({preserveComments: 'some'}))
+// Build Bootstrap (without fonts and JS)
+gulp.task('build-bootstrap', function() {
+	return gulp.src(BUILD.bootstrap.scss)
+		.pipe(plumber())
+		.pipe(sass({outputStyle: 'compressed'}))
 		.pipe(gulp.dest(BUILD.dest.temp));
-});
-gulp.task('bower-css', function() {
-	return gulp.src(mainBowerFiles)
-		.pipe(filter('*.css'))
-		.pipe(concat('vendor.css'))
-		.pipe(minifyCss())
-		.pipe(gulp.dest(BUILD.dest.temp));
-});
-gulp.task('bower-fonts', function() {
-	return gulp.src(mainBowerFiles)
-		.pipe(filter(['*.eot', '*.svg', '*.ttf', '*.woff', '*.woff2']))
-		.pipe(gulp.dest(BUILD.dest.public + 'fonts'));
 });
 
 // Build javascript
@@ -105,19 +81,11 @@ gulp.task('webpack', function() {
 
 // Build html
 gulp.task('jade', [
-	'bower-js',
-	'bower-css',
+	'build-bootstrap',
 	'webpack',
 ], function() {
 	return gulp.src(BUILD.html.src)
 		.pipe(jade({
-			locals: {
-				path: {
-					vendorCss: 'vendor.css',
-					vendorJs: 'vendor.js',
-					js: BUILD.jsClient.dest,
-				}
-			},
 			pretty: options.debug
 		}))
 		.pipe(rename(BUILD.html.dest))
@@ -126,9 +94,6 @@ gulp.task('jade', [
 
 // Build all
 gulp.task('build', [
-	'bower-js',
-	'bower-css',
-	'bower-fonts',
 	'webpack',
 	'jade',
 ]);
