@@ -64,7 +64,7 @@
 
 	app.view = function() {
 		var estStorageRatio = 74683.3283018868; // [KB/min]
-		var estDiskUsed = _.inject(app.vm.programs(), function(result, d) {
+		var estDiskUsed = _.reduce(app.vm.programs(), function(result, d) {
 			if (d.isRecorded()) return result;
 			return result + d.timeLength() * estStorageRatio;
 		}, 0);
