@@ -38,14 +38,14 @@
 		init: function() {
 			app.vm.programs = m.request({
 				method: 'GET',
-				url: '/api/recorder/programs',
+				url: 'api/recorder/programs',
 				type: app.RecoderProgram,
 				// initialValue: [],
 				// background: true,
 			});
 			app.vm.stats = m.request({
 				method: 'GET',
-				url: '/api/server/stats',
+				url: 'api/server/stats',
 				type: app.ServerStats,
 				// initialValue: new app.ServerStats({}),
 				// background: true,
